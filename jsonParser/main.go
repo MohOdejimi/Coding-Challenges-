@@ -1,28 +1,35 @@
-package main 
-
+package main
 
 import (
 	"fmt"
 	"os"
 
 	"jsonParser/lexer"
-	"jsonParser/token"
+	"jsonParser/parser"
 )
 
 func main() {
 	args := os.Args[1:]
-	if len(args) == 0 {
-		fmt.Println("Usage: jsonParser <file.json>")
-		return
-	}
+	file := args[0]
 
-	input := args[0]
+	fileContent, err := os.ReadFile(file)
+	if err != nil {
+		err = fmt.Errorf("Error Reading File Content")
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	input := string(fileContent)
+
 	lexer := lexer.New(input)
-	for {
-		tok := lexer.NextToken()
-		fmt.Printf("Token: %v, Type: %v, Literal: %v\n", tok, tok.Type, tok.Literal)
-		if tok.Type == token.EOF {
-			break
-		}
+	parser := parser.New(lexer)
+
+	result := parser.Parse()
+
+	if result != nil {
+		fmt.Println(result.Error())
+		os.Exit(1)
+	} else {
+		fmt.Println("Valid")
+		os.Exit(0)
 	}
 }

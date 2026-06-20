@@ -11,9 +11,6 @@ type Lexer struct {
 	ch byte
 }
 
-
-var SeenKey bool
-
 func New(input string) *Lexer {
 	l := &Lexer{input: input}
 	l.readChar()
@@ -46,6 +43,40 @@ func (l *Lexer) readString() string{
 	return str
 }
 
+func (l *Lexer) readTrue() bool {
+	str := "true"
+		for _, ch := range str {
+			if rune(l.ch) != ch {
+				return false
+			}
+			l.readChar()
+	}
+	return true
+}
+
+func (l *Lexer) readFalse() bool {
+	str := "false"
+	for _, ch := range str {
+		if rune(l.ch) != ch {
+			return false
+		}
+		l.readChar()
+	}
+	return true
+}
+
+func (l *Lexer) readNull() bool {
+	str := "null" 
+	for _, ch := range str {
+		if rune(l.ch) !=  ch {
+			return false
+		}
+		l.readChar()
+	}
+	return true
+}
+
+
 func (l *Lexer) NextToken() (token.Token) {
 	var tok token.Token	
 		
@@ -54,11 +85,20 @@ func (l *Lexer) NextToken() (token.Token) {
 	switch l.ch {	
 
 	case '{':
-		tok = token.Token{Type: token.LEFT_BRACE, Literal: string(l.ch)}				
+		tok = token.Token{
+			Type: token.LEFT_BRACE, 
+			Literal: string(l.ch),
+		}				
 	case '}':
-		tok = token.Token{Type: token.RIGHT_BRACE, Literal: string(l.ch)}	
+		tok = token.Token{
+			Type: token.RIGHT_BRACE,
+			Literal: string(l.ch),
+		}	
 	case 0:
-		tok = token.Token{Type: token.EOF, Literal: ""}
+		tok = token.Token{
+			Type: token.EOF,
+			Literal: "",
+		}
 		return tok
 	case '"':	
 		l.readChar()
@@ -67,14 +107,63 @@ func (l *Lexer) NextToken() (token.Token) {
 			Type: token.STRING,
 			Literal : str,
 		} 
-		SeenKey = true
 	case ':':
 		tok = token.Token{
 			Type: token.COLON,
 			Literal: string(l.ch),
-		}		
+		}
+	case ',': 
+		tok = token.Token{
+			Type: token.COMMA,
+			Literal: string(l.ch),
+		}	
+	case 't': 
+			isTrue := l.readTrue()
+			if isTrue {
+				tok = token.Token{
+					Type: token.BOOLEAN,
+					Literal: string("true"),
+				}
+			} else {
+				tok =  token.Token{
+					Type: token.ILLEGAL,
+					Literal: "ILLEGAL",
+				}
+			}
+			return tok
+	case 'f': 
+			isNotTrue := l.readFalse()
+			if isNotTrue {
+				tok =  token.Token{
+					Type: token.BOOLEAN,
+					Literal: "false",
+				}
+			} else {
+				tok = token.Token{
+					Type: token.ILLEGAL,
+					Literal: "ILLEGAL",
+				}
+			}
+			return tok
+	case 'n': 
+			isNull := l.readNull()
+			if isNull {
+				tok = token.Token{
+					Type: token.NULL,
+					Literal: "null",
+				}
+			} else {
+				tok = token.Token{
+					Type: token.ILLEGAL,
+					Literal: "ILLEGAL",
+				}
+			}
+			return tok 
 	default:	
-		tok = token.Token{Type: token.ILLEGAL, Literal: string(l.ch)}		
+		tok = token.Token{
+			Type: token.ILLEGAL, 
+			Literal: string(l.ch),
+		}		
 	}				
 
 	l.readChar()

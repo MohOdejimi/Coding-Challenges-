@@ -10,6 +10,9 @@ const (
 	ILLEGAL TokenType = "ILLEGAL"
 	STRING TokenType = "STRING"
 	COLON TokenType = "COLON"
+	COMMA TokenType = "COMMA"
+	BOOLEAN TokenType = "BOOLEAN"
+	NULL TokenType = "NULL"
 )
 
 type Token struct {

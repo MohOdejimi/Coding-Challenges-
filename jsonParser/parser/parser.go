@@ -29,6 +29,32 @@ func (p *Parser) nextToken() {
 	p.peekToken = p.lexer.NextToken()
 }
 
+func (p *Parser) parsePair() error {
+    currentToken := p.currentToken 
+
+    if currentToken.Type != token.STRING {
+        return fmt.Errorf("Starting token is not a key")
+    }
+
+    p.nextToken()
+    currentToken = p.currentToken 
+
+    if currentToken.Type != token.COLON {
+        return fmt.Errorf("Second token is not a colon, it is %v", currentToken.Literal)
+    }
+
+    p.nextToken()
+    currentToken = p.currentToken 
+
+    if currentToken.Type != token.BOOLEAN && 
+       currentToken.Type != token.STRING && 
+       currentToken.Type != token.NULL {
+        return fmt.Errorf("Token type is not a valid value type")
+    }
+
+    return nil
+}
+
 func (p *Parser) parseObject() error {
 	openingToken := p.currentToken 
 
@@ -37,42 +63,29 @@ func (p *Parser) parseObject() error {
 	}
 
 	p.nextToken()
-
 	currentToken := p.currentToken
 
 	if currentToken.Type == token.RIGHT_BRACE {
 		return nil
 	}
 
-	if currentToken.Type != token.STRING {
-		return fmt.Errorf("Current Token is not a string")
+	for {
+		err := p.parsePair()
+
+		if err != nil {
+			return err
+		}
+		p.nextToken()
+
+		currentToken = p.currentToken
+		if currentToken.Type == token.RIGHT_BRACE {
+			return nil 
+		} else if currentToken.Type == token.COMMA {
+			p.nextToken()
+		} else {
+			return fmt.Errorf("Error")
+		}
 	}
-
-	p.nextToken()
-
-	currentToken = p.currentToken 
-
-	if currentToken.Type != token.COLON {
-		return fmt.Errorf("Current token is %v not : which is the expected", currentToken.Literal)
-	}
-
-	p.nextToken()
-
-	currentToken = p.currentToken 
-
-	if currentToken.Type != token.STRING {
-		return fmt.Errorf("Current Token is not a string")
-	}
-
-	p.nextToken()
-
-	currentToken =  p.currentToken
-
-	if currentToken.Type != token.RIGHT_BRACE {
-		return fmt.Errorf("Closing Token is not }")
-	}
-
-	return nil 
 }
 
 func (p *Parser) Parse() error{
